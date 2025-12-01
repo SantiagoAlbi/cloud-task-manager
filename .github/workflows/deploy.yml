@@ -1,0 +1,89 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_BACKEND_REPO: task-manager-backend
+  ECR_FRONTEND_REPO: task-manager-frontend
+  EKS_CLUSTER_NAME: task-manager-cluster
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push backend image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        cd backend
+        docker build -t $ECR_REGISTRY/$ECR_BACKEND_REPO:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_BACKEND_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_BACKEND_REPO:latest
+        docker push $ECR_REGISTRY/$ECR_BACKEND_REPO:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_BACKEND_REPO:latest
+
+    - name: Build, tag, and push frontend image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        cd frontend
+        docker build -t $ECR_REGISTRY/$ECR_FRONTEND_REPO:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_FRONTEND_REPO:$IMAGE_TAG $ECR_REGISTRY/$ECR_FRONTEND_REPO:latest
+        docker push $ECR_REGISTRY/$ECR_FRONTEND_REPO:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_FRONTEND_REPO:latest
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+    - name: Deploy to EKS
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Update image tags in manifests
+        sed -i "s|<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/task-manager-backend:latest|$ECR_REGISTRY/$ECR_BACKEND_REPO:$IMAGE_TAG|g" k8s/backend-deployment.yaml
+        sed -i "s|<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/task-manager-frontend:latest|$ECR_REGISTRY/$ECR_FRONTEND_REPO:$IMAGE_TAG|g" k8s/frontend-deployment.yaml
+        
+        # Apply Kubernetes manifests
+        kubectl apply -f k8s/backend-deployment.yaml
+        kubectl apply -f k8s/frontend-deployment.yaml
+        kubectl apply -f k8s/ingress.yaml
+        kubectl apply -f k8s/hpa.yaml
+        
+        # Wait for rollout
+        kubectl rollout status deployment/task-backend
+        kubectl rollout status deployment/task-frontend
+
+    - name: Verify deployment
+      run: |
+        kubectl get pods
+        kubectl get services
+        kubectl get ingress
