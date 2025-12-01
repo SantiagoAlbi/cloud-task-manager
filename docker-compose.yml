@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: task-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+    networks:
+      - task-network
+
+  frontend:
+    build: ./frontend
+    container_name: task-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - task-network
+
+networks:
+  task-network:
+    driver: bridge

@@ -1,0 +1,26 @@
+# Verificá que esté completo
+cat .gitignore
+```
+
+Debería verse así:
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+backend/venv/
+venv/
+*.env
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
