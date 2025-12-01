@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: task-manager-config
+data:
+  FLASK_ENV: "production"
+  API_URL: "http://task-backend-service:5000"
