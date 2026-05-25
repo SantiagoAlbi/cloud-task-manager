@@ -14,9 +14,10 @@ spec:
       labels:
         app: task-backend
     spec:
+      serviceAccountName: backend-sa
       containers:
       - name: backend
-        image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/task-manager-backend:latest #image: ${ECR_BACKEND_URL}:latest
+        image: 975049900198.dkr.ecr.us-east-1.amazonaws.com/task-manager-backend:latest #<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/task-manager-backend:latest 
         ports:
         - containerPort: 5000
         env:
@@ -24,6 +25,10 @@ spec:
           value: "5000"
         - name: FLASK_ENV
           value: "production"
+        - name: DB_SECRET_NAME
+          value: "task-manager/db-credentials"
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
         resources:
           requests:
             memory: "128Mi"
@@ -35,13 +40,13 @@ spec:
           httpGet:
             path: /health
             port: 5000
-          initialDelaySeconds: 10
+          initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
             port: 5000
-          initialDelaySeconds: 5
+          initialDelaySeconds: 30
           periodSeconds: 5
 ---
 apiVersion: v1

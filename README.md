@@ -286,8 +286,6 @@ This project is open source and available under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- Built as a portfolio project to demonstrate cloud engineering skills
-- Part of my journey transitioning to Cloud Engineering role
 - Focus: AWS, Terraform, Docker, Kubernetes, DevOps
 
 ---

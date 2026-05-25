@@ -1,39 +1,47 @@
 output "vpc_id" {
-  description = "VPC ID"
-  value       = aws_vpc.main.id
+  value = aws_vpc.main.id
 }
 
 output "public_subnets" {
-  description = "Public subnet IDs"
-  value       = aws_subnet.public[*].id
+  value = aws_subnet.public[*].id
 }
 
 output "private_subnets" {
-  description = "Private subnet IDs"
-  value       = aws_subnet.private[*].id
+  value = aws_subnet.private[*].id
 }
 
 output "ecr_backend_url" {
-  description = "ECR Backend repository URL"
-  value       = aws_ecr_repository.backend.repository_url
+  value = aws_ecr_repository.backend.repository_url
 }
 
 output "ecr_frontend_url" {
-  description = "ECR Frontend repository URL"
-  value       = aws_ecr_repository.frontend.repository_url
+  value = aws_ecr_repository.frontend.repository_url
 }
 
 output "cluster_name" {
-  description = "EKS Cluster name"
-  value       = aws_eks_cluster.main.name
+  value = aws_eks_cluster.main.name
 }
 
 output "cluster_endpoint" {
-  description = "EKS Cluster endpoint"
-  value       = aws_eks_cluster.main.endpoint
+  value = aws_eks_cluster.main.endpoint
 }
 
 output "cluster_version" {
-  description = "EKS Cluster version"
-  value       = aws_eks_cluster.main.version
+  value = aws_eks_cluster.main.version
+}
+
+output "db_endpoint" {
+  value = aws_db_instance.main.address
+}
+
+output "db_secret_name" {
+  value = aws_secretsmanager_secret.db_credentials.name
+}
+
+output "backend_role_arn" {
+  value = aws_iam_role.backend_pod.arn
+}
+
+output "lbc_role_arn" {
+  value = aws_iam_role.lbc.arn
 }
