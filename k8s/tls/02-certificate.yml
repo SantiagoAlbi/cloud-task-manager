@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: task-manager-tls
+  namespace: default
+spec:
+  secretName: task-manager-tls-secret
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+  commonName: task-manager.local
+  dnsNames:
+    - task-manager.local
+  duration: 8760h
+  renewBefore: 720h
