@@ -1,0 +1,25 @@
+[
+    {
+        "Name": "k8s-monitori-promethe-00a6ff71ae",
+        "Ingress": [
+            {
+                "FromPort": 80,
+                "IpProtocol": "tcp",
+                "IpRanges": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "Description": ""
+                    }
+                ],
+                "Ipv6Ranges": [],
+                "PrefixListIds": [],
+                "ToPort": 80,
+                "UserIdGroupPairs": []
+            }
+        ]
+    },
+    {
+        "Name": "k8s-traffic-taskmanagercluster-d585bcfacf",
+        "Ingress": []
+    }
+]

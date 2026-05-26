@@ -115,3 +115,23 @@ resource "aws_eks_node_group" "main" {
     Name = "${var.project_name}-node-group"
   }
 }
+
+resource "aws_security_group_rule" "allow_http_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+  description       = "Allow HTTP from internet for NGINX Ingress"
+}
+
+resource "aws_security_group_rule" "allow_nodeport_ingress" {
+  type              = "ingress"
+  from_port         = 30000
+  to_port           = 32767
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+  description       = "Allow NodePort range for Load Balancer health checks"
+}

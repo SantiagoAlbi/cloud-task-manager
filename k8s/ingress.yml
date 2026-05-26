@@ -3,11 +3,10 @@ kind: Ingress
 metadata:
   name: task-manager-ingress
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/healthcheck-path: /health
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
 spec:
-  ingressClassName: alb # Use the ALB Ingress Controller
+  ingressClassName: nginx
   rules:
   - http:
       paths:
@@ -25,6 +24,13 @@ spec:
             name: task-backend-service
             port:
               number: 5000
+      - path: /grafana
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-grafana
+            port:
+              number: 80
       - path: /
         pathType: Prefix
         backend:
