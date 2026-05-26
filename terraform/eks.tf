@@ -146,3 +146,23 @@ resource "aws_eks_addon" "vpc_cni_network_policy" {
 
   depends_on = [aws_eks_node_group.main]
 }
+
+resource "null_resource" "cleanup_nlb" {
+  triggers = {
+    cluster_name = aws_eks_cluster.main.name
+    region       = var.aws_region
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "Deleting NGINX ingress service to trigger NLB deletion..."
+      aws eks update-kubeconfig --name ${self.triggers.cluster_name} --region ${self.triggers.region} || true
+      kubectl delete svc nginx-ingress-ingress-nginx-controller -n ingress-nginx --ignore-not-found=true || true
+      echo "Waiting 90 seconds for NLB to be deleted..."
+      sleep 90
+    EOT
+  }
+
+  depends_on = [aws_eks_cluster.main]
+}
