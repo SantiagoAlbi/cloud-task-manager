@@ -135,3 +135,14 @@ resource "aws_security_group_rule" "allow_nodeport_ingress" {
   security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
   description       = "Allow NodePort range for Load Balancer health checks"
 }
+
+resource "aws_eks_addon" "vpc_cni_network_policy" {
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "vpc-cni"
+  
+  configuration_values = jsonencode({
+    enableNetworkPolicy = "true"
+  })
+
+  depends_on = [aws_eks_node_group.main]
+}
