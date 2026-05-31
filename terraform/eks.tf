@@ -91,6 +91,7 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry_policy" {
 }
 
 # EKS Node Group
+/*
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.project_name}-node-group"
@@ -109,6 +110,33 @@ resource "aws_eks_node_group" "main" {
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
     aws_iam_role_policy_attachment.eks_container_registry_policy,
+  ]
+
+  tags = {
+    Name = "${var.project_name}-node-group"
+  }
+}
+*/
+#2end
+resource "aws_eks_node_group" "main" {
+  cluster_name    = aws_eks_cluster.main.name
+  node_group_name = "${var.project_name}-node-group"
+  node_role_arn   = aws_iam_role.eks_nodes.arn
+  subnet_ids      = aws_subnet.private[*].id
+
+  scaling_config {
+    desired_size = 3
+    max_size     = 4
+    min_size     = 1
+  }
+
+  instance_types = ["t3.small"]
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_worker_node_policy,
+    aws_iam_role_policy_attachment.eks_cni_policy,
+    aws_iam_role_policy_attachment.eks_container_registry_policy,
+    aws_nat_gateway.main, # <-- este es el fix
   ]
 
   tags = {
@@ -137,9 +165,9 @@ resource "aws_security_group_rule" "allow_nodeport_ingress" {
 }
 
 resource "aws_eks_addon" "vpc_cni_network_policy" {
-  cluster_name  = aws_eks_cluster.main.name
-  addon_name    = "vpc-cni"
-  
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "vpc-cni"
+
   configuration_values = jsonencode({
     enableNetworkPolicy = "true"
   })
